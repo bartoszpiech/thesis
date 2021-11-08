@@ -10,7 +10,10 @@ context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
 socket.connect('tcp://localhost:5555')
+
+# which node to listen to
 node_filter = sys.argv[1] if len(sys.argv) > 1 else "1"
+
 socket.setsockopt_string(zmq.SUBSCRIBE, node_filter)
 print('Subscribing to node: ' + str(node_filter) + ' on localhost:5555')
 
