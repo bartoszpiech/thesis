@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import hashlib
+import time
 from random import randint
 
 MAX_UINT = 4294967295    # maximum value of random special number <0, MAX_UINT>
@@ -58,8 +59,12 @@ def check_zeros(string, number_of_zeros):
         return True
     return False
 
-amount = 0
-b = Block(0, Transaction("Bartek", "Klaudia", amount))
-d = b.find_hash()
-print(b)
-print(d)
+
+t = time.time()
+for i in range(0,1000000):
+    j = randint(0, MAX_UINT)
+    h = hashlib.sha256(str(j).encode('utf-8'))
+    if check_zeros(h.hexdigest(), LEADING_ZEROS):
+        print(h.hexdigest())
+td = time.time() - t
+print(td)
