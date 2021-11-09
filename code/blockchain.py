@@ -8,9 +8,11 @@ LEADING_ZEROS = 4       # leading number of zeros in the block hash
 BODY_SIZE = 5           # size of transactions in a body
 
 
+# TODO check blocks
 class Blockchain:
     def __init__(self):
         self.blocks = []
+        self.add_block()
 
     def __repr__(self):
         return_string = '\n{'
@@ -26,34 +28,33 @@ class Blockchain:
             block.prev_hash = self.blocks[-1]
             self.blocks.append(Block())
 
-    def add_transaction(self, transaction):
-        if self.blocks[-1].body.add_transaction(transaction) == False:
+    def add_node(self, node):
+        if self.blocks[-1].body.add_node(node) == False:
             self.blocks[-1].compute_hash()
-            self.blocks.append(Block(self.blocks[-1].hash.hexdigest()))
-            self.add_transaction(transaction)
+            self.blocks.append(Block(self.blocks[-1].hash))
+            self.add_node(node)
     #def check_blocks(self):
 
-
-# TODO add body bounds
 class Body:
     def __init__(self):
         self.size = 5
-        self.transactions = []
+        self.nodes = []
+
     def __repr__(self):
         return_string = '\n['
-        for t in self.transactions:
+        for t in self.nodes:
             return_string += str(t)
         return_string += ']\n'
         return return_string
-    def add_transaction(self, transaction):
-        if len(self.transactions) < self.size:
-            self.transactions.append(transaction)
+
+    def add_node(self, node):
+        if len(self.nodes) < self.size:
+            self.nodes.append(node)
             return True
         return False
 
-# TODO add list of blocks
 class Block:
-    def __init__(self, prev_hash = None, special_number = None):
+    def __init__(self, prev_hash = 0, special_number = None):
         self.prev_hash = prev_hash
         self.body = Body()
         self.special_number = special_number
@@ -65,58 +66,50 @@ class Block:
         while True:
             i = randint(1, MAX_UINT)
             self.special_number = i
-            h = hashlib.sha256(str(self).encode('utf-8'))
-            if check_zeros(h.hexdigest(), LEADING_ZEROS):
-                self.special_number = i
-                self.hash = h
-                d = h.hexdigest()
-                return d
+            self.hash = hashlib.sha256(str(self).encode('utf-8')).hexdigest()
+            if self.check_zeros(LEADING_ZEROS):
+                return self.hash
+
     def get_hash(self):
         return hashlib.sha256(str(self).encode('utf-8'))
 
     def check_zeros(self, number_of_zeros):
-        if self[0:number_of_zeros] == '0' * number_of_zeros:
+        if self.hash[0:number_of_zeros] == '0' * number_of_zeros:
             return True
         return False
 
-
-
 # TODO transform transactions into Authentications
-
 class Transaction:
     def __init__(self, sender, receiver, amount):
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
-    def __repr__(self):#works
+    def __repr__(self):
         return '"' + self.sender + ' sends ' + self.receiver + ' ' \
          + str(self.amount) + 'BD"'
 
 class Con(Enum):
-    Open = 1
-    Closed = 2
+    Open = auto()
+    Closed = auto()
 
-class Authentication:
+class Node:
     def __init__(self, device_id, connection):
         self.device_id = device_id
         self.connection = connection
     def __repr__(self):
-        return str(self.connection) + ' - ' + self.device_id + '\n'
+        return str(self.connection) + ' - ' + self.device_id
 
 def check_zeros(string, number_of_zeros):
     if string[0:number_of_zeros] == '0' * number_of_zeros:
         return True
     return False
 
-a = Authentication('123abc', Con.Open)
-print(a)
-
 b = Blockchain()
-b.add_block()
+
+t = (19, Con.Open)
 
 for i in range(0,13):
-    amount = i
-    b.add_transaction(Transaction('Bartek', 'Klaudia', amount))
+    b.add_node(t)
 print(b)
 
 """
