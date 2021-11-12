@@ -106,9 +106,9 @@ def check_zeros(string, number_of_zeros):
 
 b = Blockchain()
 
-t = (19, Con.Open)
 
 for i in range(0,13):
+    t = (randint(0,100), Con.Open)
     b.add_node(t)
 print(b)
 
