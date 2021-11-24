@@ -3,8 +3,11 @@ import hashlib
 from enum import Enum, auto
 from random import randint
 
+from flask import Flask
+app = Flask(__name__)
+
 MAX_UINT = 4294967295   # maximum value of random special number <0, MAX_UINT>
-LEADING_ZEROS = 4       # leading number of zeros in the block hash
+LEADING_ZEROS = 5       # leading number of zeros in the block hash
 BODY_SIZE = 5           # size of transactions in a body
 
 
@@ -88,29 +91,47 @@ class Transaction:
         return '"' + self.sender + ' sends ' + self.receiver + ' ' \
          + str(self.amount) + 'BD"'
 
-class Con(Enum):
-    Open = auto()
-    Closed = auto()
-
+# TODOO connection status as enum, did not work earlier because enum cannot 
+# be converted easily to dict as part of another object
 class Node:
-    def __init__(self, device_id, connection):
+    def __init__(self, device_id, connection_status):
         self.device_id = device_id
-        self.connection = connection
+        self.connection_status = connection_status  # 1 -- open, 0 -- closed
     def __repr__(self):
-        return str(self.connection) + ' - ' + self.device_id
+        return str(self.connection_status) + ' - ' + str(self.device_id)
 
 def check_zeros(string, number_of_zeros):
     if string[0:number_of_zeros] == '0' * number_of_zeros:
         return True
     return False
 
-b = Blockchain()
 
+@app.route('/api/node')
+def api():
+    n = Node(randint(0,100), randint(0, 1))
+    app.logger.debug('new node request: ' + str(n.__dict__))
+    return n.__dict__
+
+l = []
+@app.route('/api/add/<int:dev_id>/<int:status>')
+def api_add_node(dev_id, status):
+    app.logger.debug('API ADD: ' + str(dev_id) + ' ' + str(status))
+    if status != 1 and status != 0:
+        return {'Status': 403}
+    n = Node(dev_id, status)
+    l.append(n)
+    app.logger.debug('LIST:' + str(l))
+
+    return {'Status': 201}
+
+""" blockchain test -- 13 nodes added
+b = Blockchain()
 
 for i in range(0,13):
     t = (randint(0,100), Con.Open)
     b.add_node(t)
 print(b)
+"""
 
 """
 body = Body()
