@@ -10,19 +10,19 @@ MAX_UINT = 4294967295   # maximum value of random special number <0, MAX_UINT>
 LEADING_ZEROS = 5       # leading number of zeros in the block hash
 BODY_SIZE = 5           # size of transactions in a body
 
-
+# TODO add API that exports all the nodes in separate blocks into one big list
+# TODO classes as separate files
 # TODO check blocks
 class Blockchain:
     def __init__(self):
         self.blocks = []
         self.add_block()
 
-    def __repr__(self):
-        return_string = '\n{'
-        for b in self.blocks:
-            return_string += str(b)
-        return_string += '}\n'
-        return return_string
+    def to_json(self):
+        tmp = []
+        for block in self.blocks:
+            tmp.append(block.to_json())
+        return {'blocks': tmp}
 
     def add_block(self):
         if len(self.blocks) == 0:
@@ -43,12 +43,11 @@ class Body:
         self.size = 5
         self.nodes = []
 
-    def __repr__(self):
-        return_string = '\n['
-        for t in self.nodes:
-            return_string += str(t)
-        return_string += ']\n'
-        return return_string
+    def to_json(self):
+        tmp = []
+        for node in self.nodes:
+            tmp.append(node.to_json())
+        return {'size': self.size, 'nodes': tmp}
 
     def add_node(self, node):
         if len(self.nodes) < self.size:
@@ -62,16 +61,16 @@ class Block:
         self.body = Body()
         self.special_number = special_number
 
-    def __repr__(self):
-        return '\n(' + str(self.prev_hash) + '|' + str(self.body) + '|' + str(self.special_number) + ')\n'
-
     def compute_hash(self):
-        while True:
-            i = randint(1, MAX_UINT)
+        for i in range(0, MAX_UINT):
+            #i = randint(1, MAX_UINT)    # i -- random, not very efficient
             self.special_number = i
-            self.hash = hashlib.sha256(str(self).encode('utf-8')).hexdigest()
+            self.hash = hashlib.sha256(str(self.to_json()).encode('utf-8')).hexdigest()
             if self.check_zeros(LEADING_ZEROS):
                 return self.hash
+
+    def to_json(self):
+        return {'prev_hash': self.prev_hash, 'body': self.body.to_json(), 'special_number': self.special_number}
 
     def get_hash(self):
         return hashlib.sha256(str(self).encode('utf-8'))
@@ -81,24 +80,15 @@ class Block:
             return True
         return False
 
-# TODO transform transactions into Authentications
-class Transaction:
-    def __init__(self, sender, receiver, amount):
-        self.sender = sender
-        self.receiver = receiver
-        self.amount = amount
-    def __repr__(self):
-        return '"' + self.sender + ' sends ' + self.receiver + ' ' \
-         + str(self.amount) + 'BD"'
-
-# TODOO connection status as enum, did not work earlier because enum cannot 
-# be converted easily to dict as part of another object
+# Tutaj mialem problemy przy tworzeniu connection status jako enuma, zamiast
+# tego dalem int, 0 -> otwarte polaczenia, 1 -> zamkniete polaczenia.
 class Node:
     def __init__(self, device_id, connection_status):
         self.device_id = device_id
         self.connection_status = connection_status  # 1 -- open, 0 -- closed
-    def __repr__(self):
-        return str(self.connection_status) + ' - ' + str(self.device_id)
+
+    def to_json(self):
+        return {'device_id': self.device_id, 'connection_status': self.connection_status}
 
 def check_zeros(string, number_of_zeros):
     if string[0:number_of_zeros] == '0' * number_of_zeros:
@@ -106,44 +96,36 @@ def check_zeros(string, number_of_zeros):
     return False
 
 
-@app.route('/api/node')
-def api():
-    n = Node(randint(0,100), randint(0, 1))
-    app.logger.debug('new node request: ' + str(n.__dict__))
-    return n.__dict__
+@app.route('/api/blockchain')
+def api_blockchain():
+    #app.logger.debug('BLOCKCHAIN' + str(blockchain.to_json()))
+    return blockchain.to_json()
 
-l = []
-@app.route('/api/add/<int:dev_id>/<int:status>')
-def api_add_node(dev_id, status):
-    app.logger.debug('API ADD: ' + str(dev_id) + ' ' + str(status))
-    if status != 1 and status != 0:
+# czy przy dodawaniu/usuwaniu nowego node klient ma czekac az blok zostanie
+# znaleziony? czy po prostu zaakceptowac blok i potem w tle sobie szukac hasha?
+@app.route('/api/open/<int:dev_id>')
+def api_open(dev_id):
+    status = 1  # connection open
+    if dev_id > 999 or dev_id < 0:
         return {'Status': 403}
     n = Node(dev_id, status)
-    l.append(n)
-    app.logger.debug('LIST:' + str(l))
-
+    blockchain.add_node(n)
     return {'Status': 201}
 
-""" blockchain test -- 13 nodes added
-b = Blockchain()
+# czy przy dodawaniu/usuwaniu nowego node klient ma czekac az blok zostanie
+# znaleziony? czy po prostu zaakceptowac blok i potem w tle sobie szukac hasha?
+@app.route('/api/close/<int:dev_id>')
+def api_close(dev_id):
+    status = 0  # connection open
+    if dev_id > 999 or dev_id < 0:
+        return {'Status': 403}
+    n = Node(dev_id, status)
+    blockchain.add_node(n)
+    return {'Status': 201}
 
-for i in range(0,13):
-    t = (randint(0,100), Con.Open)
-    b.add_node(t)
-print(b)
-"""
+blockchain = Blockchain()
 
-"""
-body = Body()
-for i in range(1,10):
-    works = body.add_transaction('siema' + str(i))
-    print(works)
-print(body.transactions)
-"""
-"""
-amount = 0
-b = Block(0, Transaction("Bartek", "Klaudia", amount))
-d = b.compute_hash()
-print(b)
-print(d)
-"""
+# tego chyba sie we flasku nie daje
+# ...
+if __name__ == '__main__':
+    print('siema')
