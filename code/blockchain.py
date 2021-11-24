@@ -7,12 +7,13 @@ from flask import Flask
 app = Flask(__name__)
 
 MAX_UINT = 4294967295   # maximum value of random special number <0, MAX_UINT>
-LEADING_ZEROS = 5       # leading number of zeros in the block hash
+LEADING_ZEROS = 4       # leading number of zeros in the block hash
 BODY_SIZE = 5           # size of transactions in a body
 
 # TODO add API that exports all the nodes in separate blocks into one big list
 # TODO classes as separate files
 # TODO check blocks
+
 class Blockchain:
     def __init__(self):
         self.blocks = []
@@ -36,7 +37,15 @@ class Blockchain:
             self.blocks[-1].compute_hash()
             self.blocks.append(Block(self.blocks[-1].hash))
             self.add_node(node)
-    #def check_blocks(self):
+    def check_blocks(self):
+        # loop over all blocks except the last one (dont know if its mined yet)
+        for i, block in enumerate(self.blocks[:-1]):
+            print('actual hash:' + block.get_hash().hexdigest())
+            print('prev hash:' + self.blocks[i + 1].prev_hash)
+            print('check_zeros:' + str(block.check_zeros(LEADING_ZEROS)))
+            if block.get_hash().hexdigest() != self.blocks[i + 1].prev_hash or block.check_zeros(LEADING_ZEROS) == False:
+                return False
+        return True
 
 class Body:
     def __init__(self):
@@ -55,17 +64,23 @@ class Body:
             return True
         return False
 
+
+# TODO dodanie pola is_mined do klasy block zeby wiedziec czy i kiedy zostal
+# wykopany, dodanie timestampa z wykopania
 class Block:
     def __init__(self, prev_hash = 0, special_number = None):
         self.prev_hash = prev_hash
         self.body = Body()
         self.special_number = special_number
 
+    def __str__(self):
+        return str(self.to_json())
+
     def compute_hash(self):
         for i in range(0, MAX_UINT):
             #i = randint(1, MAX_UINT)    # i -- random, not very efficient
             self.special_number = i
-            self.hash = hashlib.sha256(str(self.to_json()).encode('utf-8')).hexdigest()
+            self.hash = hashlib.sha256(str(self).encode('utf-8')).hexdigest()
             if self.check_zeros(LEADING_ZEROS):
                 return self.hash
 
@@ -114,6 +129,7 @@ def api_open(dev_id):
 
 # czy przy dodawaniu/usuwaniu nowego node klient ma czekac az blok zostanie
 # znaleziony? czy po prostu zaakceptowac blok i potem w tle sobie szukac hasha?
+# albo po dodaniu ostatniego limitowego node'a blok jest automatycznie kopany?
 @app.route('/api/close/<int:dev_id>')
 def api_close(dev_id):
     status = 0  # connection open
@@ -128,4 +144,7 @@ blockchain = Blockchain()
 # tego chyba sie we flasku nie daje
 # ...
 if __name__ == '__main__':
-    print('siema')
+    for i in range(0,25):
+        t = Node(randint(0,100), randint(0,1))
+        blockchain.add_node(t)
+        print(blockchain)
