@@ -12,7 +12,6 @@ BODY_SIZE = 5           # size of transactions in a body
 
 # TODO add API that exports all the nodes in separate blocks into one big list
 # TODO classes as separate files
-# TODO check blocks
 
 class Blockchain:
     def __init__(self):
@@ -46,6 +45,8 @@ class Blockchain:
             if block.get_hash().hexdigest() != self.blocks[i + 1].prev_hash or block.check_zeros(LEADING_ZEROS) == False:
                 return False
         return True
+    def get_height(self):
+        return len(self.blocks)
 
 class Body:
     def __init__(self):
@@ -115,6 +116,10 @@ def check_zeros(string, number_of_zeros):
 def api_blockchain():
     #app.logger.debug('BLOCKCHAIN' + str(blockchain.to_json()))
     return blockchain.to_json()
+
+@app.route('/api/blockchain/height')
+def api_blockchain_height():
+    return str(blockchain.get_height())
 
 # czy przy dodawaniu/usuwaniu nowego node klient ma czekac az blok zostanie
 # znaleziony? czy po prostu zaakceptowac blok i potem w tle sobie szukac hasha?
