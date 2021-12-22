@@ -1,8 +1,10 @@
 from node import Node
 
+BODY_SIZE = 5           # size of transactions in a body
+
 class Body:
     def __init__(self):
-        self.size = 5
+        self.size = BODY_SIZE
         self.nodes = []
 
     def to_json(self):

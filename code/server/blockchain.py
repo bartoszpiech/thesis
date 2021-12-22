@@ -2,11 +2,9 @@
 import hashlib
 from random import randint
 
-from block import Block
+from block import *
 
-MAX_UINT = 4294967295   # maximum value of random special number <0, MAX_UINT>
-LEADING_ZEROS = 4       # leading number of zeros in the block hash
-BODY_SIZE = 5           # size of transactions in a body
+#LEADING_ZEROS = 4       # leading number of zeros in the block hash
 
 class Blockchain:
     def __init__(self):

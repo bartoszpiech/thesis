@@ -1,53 +1,55 @@
-import functools
 from flask import Flask
+from datetime import datetime
 import atexit
 
 from blockchain import Blockchain
+from node import Node
 
 app = Flask(__name__)
 
 # TODO add API that exports all the nodes in separate blocks into one big list
 
+logs = {
+        'start': datetime.now().timestamp(),
+        'uptime': 0,
+        '/api/blockchain': 0,
+        '/api/blockchain/height': 0,
+        '/api/open': 0,
+        '/api/close': 0,
+        '/api/logs': 0
+        }
 
-def invocation_counter(func):
-    inv_counter = 0
-
-    @functools.wraps(func)
-    def decorating_function(*args, **kwargs):
-        nonlocal inv_counter
-        inv_counter += 1
-        func(*args, **kwargs)
-
-    def info():
-        return inv_counter
-
-    def clear():
-        inv_counter = 0
-
-    decorating_function.clear = clear
-    decorating_function.info = info
-    return decorating_function
-
+# dumps log values to logs.txt file on program shutdown
 @atexit.register
-def log():
-    print('Logs:\n')
-    print(api_blockchain.info())
+def dump_logs():
+    logs['uptime'] = datetime.now().timestamp() - logs['start']
+    fp = open('logs.txt', 'w')
+    fp.write(str(logs))
+    fp.close()
 
+#
+@app.route('/api/logs')
+def api_logs():
+    logs['uptime'] = datetime.now().timestamp() - logs['start']
+    logs['/api/logs'] += 1
+    return logs
 
-@invocation_counter
 @app.route('/api/blockchain')
 def api_blockchain():
-    #app.logger.debug('BLOCKCHAIN' + str(blockchain.to_json()))
+    logs['/api/blockchain'] += 1
+#app.logger.debug('BLOCKCHAIN' + str(blockchain.to_json()))
     return blockchain.to_json()
 
 @app.route('/api/blockchain/height')
 def api_blockchain_height():
+    logs['/api/blockchain/height'] += 1
     return str(blockchain.get_height())
 
 # czy przy dodawaniu/usuwaniu nowego node klient ma czekac az blok zostanie
 # znaleziony? czy po prostu zaakceptowac blok i potem w tle sobie szukac hasha?
 @app.route('/api/open/<int:dev_id>')
 def api_open(dev_id):
+    logs['/api/open'] += 1
     status = 1  # connection open
     if dev_id > 999 or dev_id < 0:
         return {'Status': 403}
@@ -60,6 +62,7 @@ def api_open(dev_id):
 # albo po dodaniu ostatniego limitowego node'a blok jest automatycznie kopany?
 @app.route('/api/close/<int:dev_id>')
 def api_close(dev_id):
+    logs['/api/close'] += 1
     status = 0  # connection open
     if dev_id > 999 or dev_id < 0:
         return {'Status': 403}
