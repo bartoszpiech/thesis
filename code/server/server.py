@@ -4,7 +4,8 @@ import atexit
 import threading
 
 from blockchain import *
-#from node import Node
+
+DEVICE_NUMBER = 1000
 
 app = Flask(__name__)
 
@@ -21,6 +22,7 @@ logs = {
         '/api/blockchain/check': 0,
         '/api/open': 0,
         '/api/close': 0,
+        '/api/check': 0,
         '/api/logs': 0
         }
 
@@ -61,7 +63,7 @@ def api_open(dev_id):
     status = 1  # connection open
     global mutex
     logs['/api/open'] += 1
-    if dev_id > 999 or dev_id < 0:
+    if dev_id > DEVICE_NUMBER or dev_id < 0:
         return {'Status': 403}
     mutex.acquire()
     n = Node(dev_id, status)
@@ -79,7 +81,7 @@ def api_close(dev_id):
     status = 0  # connection open
     global mutex
     logs['/api/close'] += 1
-    if dev_id > 999 or dev_id < 0:
+    if dev_id > DEVICE_NUMBER or dev_id < 0:
         return {'Status': 403}
     mutex.acquire()
     n = Node(dev_id, status)
@@ -91,6 +93,9 @@ def api_close(dev_id):
 
 @app.route('/api/check/<int:dev_id>')
 def api_check(dev_id):
-    return str(blockchain.check_if_authorized(dev_id))
+    logs['/api/check'] += 1
+    if blockchain.check_blocks():       # when blockchain integration is invalid
+        return str(blockchain.check_if_authorized(dev_id))
+    return False
 
 blockchain = Blockchain()
