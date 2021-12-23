@@ -1,6 +1,7 @@
 import time
 import zmq
 import requests
+from random import randrange
 
 IP = 'http://192.168.0.143:5000'
 
@@ -17,9 +18,12 @@ socket.bind("tcp://*:5555")
 
 while True:
     incoming_id = int(socket.recv())
-    print("Received request: %s" % incoming_id)
     if check_device(incoming_id):
-        socket.send(b"+ Device authorized")
+        temperature = randrange(-20, 40)
+        brightness = randrange(0, 100)
+        socket.send_string(f"Device {incoming_id} authorized: {temperature} {brightness}")
+        print(f"Received request from : {incoming_id} -- authorized")
     else:
-        socket.send(b"- Device unauthorized")
+        socket.send_string(f"Device {incoming_id} unauthorized")
+        print(f"Received request from : {incoming_id} -- unauthorized")
     #time.sleep(1)

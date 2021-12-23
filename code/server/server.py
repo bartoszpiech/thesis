@@ -81,7 +81,7 @@ def api_close(dev_id):
     connection = 0  # connection closed
     status = 201
     global mutex
-    logs['/api/open'] += 1
+    logs['/api/close'] += 1
     if dev_id > DEVICE_NUMBER or dev_id < 0:
         status = 403
     if status == 201:
