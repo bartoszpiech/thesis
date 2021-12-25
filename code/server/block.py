@@ -11,7 +11,7 @@ LEADING_ZEROS = 4       # leading number of zeros in the block hash
 # wykopany, dodanie timestampa z wykopania
 
 class Block:
-    def __init__(self, prev_hash = 0, special_number = None, timestamp = None):
+    def __init__(self, prev_hash = '0', special_number = 'None', timestamp = 'None'):
         self.prev_hash = prev_hash
         self.body = Body()
         self.special_number = special_number
@@ -36,6 +36,6 @@ class Block:
         return hashlib.sha256(str(self).encode('utf-8'))
 
     def check_zeros(self, number_of_zeros):
-        if self.hash[0:number_of_zeros] == '0' * number_of_zeros:
+        if self.get_hash().hexdigest()[0:number_of_zeros] == '0' * number_of_zeros:
             return True
         return False

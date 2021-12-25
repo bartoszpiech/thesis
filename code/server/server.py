@@ -8,6 +8,7 @@ from blockchain import *
 # number of devices in the network
 DEVICE_NUMBER = 1000
 
+blockchain = Blockchain('blockchain.json')
 app = Flask(__name__)
 
 # mutex prevents from adding new blocks when previous are not full yet (block not fully mined)
@@ -25,13 +26,10 @@ logs = {
         '/api/logs': 0
         }
 
-# TODO bug, does not work for now
-# dumps log values to logs.txt file on program shutdown
-@atexit.register
-def dump_logs():
-    #global logs
-    #logs['uptime'] = datetime.now().timestamp() - logs['start']
-    with open('logs.txt', 'w') as fp:
+# saving logs from current session into 'logs_file_name'
+logs_file_name = 'logs.json'
+def dump_logs(file_name):
+    with open(file_name, 'w') as fp:
         fp.write(str(logs))
 
 @app.route('/api/logs')
@@ -39,25 +37,29 @@ def api_logs():
     logs['uptime'] = datetime.now().timestamp() - logs['start']
     logs['/api/logs'] += 1
     app.logger.debug('Request /api/logs')
+    dump_logs(logs_file_name)
     return logs
 
 @app.route('/api/blockchain')
 def api_blockchain():
     logs['/api/blockchain'] += 1
     app.logger.debug('Request /api/blockchain')
+    dump_logs(logs_file_name)
     return blockchain.to_json()
 
 @app.route('/api/blockchain/height')
 def api_blockchain_height():
     logs['/api/blockchain/height'] += 1
     app.logger.debug('Request /api/blockchain/height')
+    dump_logs(logs_file_name)
     return str(blockchain.get_height())
 
 @app.route('/api/blockchain/check')
 def api_blockchain_check():
     logs['/api/blockchain/check'] += 1
     app.logger.debug('Request /api/blockchain/check')
-    return str(blockchain.check_blocks())
+    dump_logs(logs_file_name)
+    return str(blockchain.check_integrity())
 
 @app.route('/api/open/<int:dev_id>')
 def api_open(dev_id):
@@ -74,6 +76,8 @@ def api_open(dev_id):
             status = 400
         mutex.release()
     app.logger.debug('Request /api/open/' + str(dev_id) + ' -- Response: ' + str(status))
+    dump_logs(logs_file_name)
+    blockchain.to_file()
     return {'Status': status}
 
 @app.route('/api/close/<int:dev_id>')
@@ -91,13 +95,14 @@ def api_close(dev_id):
             status = 400
         mutex.release()
     app.logger.debug('Request /api/close/' + str(dev_id) + ' -- Response: ' + str(status))
+    dump_logs(logs_file_name)
+    blockchain.to_file()
     return {'Status': status}
 
 @app.route('/api/check/<int:dev_id>')
 def api_check(dev_id):
-    is_authorized = blockchain.check_if_authorized(dev_id) and blockchain.check_blocks()
+    is_authorized = blockchain.check_if_authorized(dev_id)
     logs['/api/check'] += 1
     app.logger.debug('Request /api/check/' + str(dev_id) + ' -- Response: ' + str(is_authorized))
+    dump_logs(logs_file_name)
     return str(is_authorized)
-
-blockchain = Blockchain()

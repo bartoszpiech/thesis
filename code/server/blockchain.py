@@ -1,20 +1,51 @@
 #!/usr/bin/python
 import hashlib
 from random import randint
+import json
 
 from block import *
 
-
 class Blockchain:
-    def __init__(self):
+    def __init__(self, file_name = None):
         self.blocks = []
-        self.add_block()
+        self.file_name = file_name
+        if isinstance(self.file_name, str):
+            if not self.from_file(self.file_name):
+                print(f'File {self.file_name} not found, creating one.')
+                self.add_block()
+                self.to_file()
+            elif self.check_integrity():
+                print(f'Read blockchain from file {self.file_name} was successful, blockchain integrity not violated.')
+            else:
+                print('Error: Blockchain integrity violated!')
+                exit(1)
+        if len(self.blocks) == 0:
+            self.add_block()
 
     def to_json(self):
         tmp = []
         for block in self.blocks:
             tmp.append(block.to_json())
         return {'blocks': tmp}
+
+    def to_file(self):
+        with open(self.file_name, 'w') as fp:
+            fp.write(str(self.to_json()))
+
+    def from_file(self, file_name):
+        try:
+            with open(file_name, 'r') as fp:
+                blockchain_str = fp.read()
+        except FileNotFoundError:
+            return False
+        json_blockchain = json.loads(blockchain_str.replace("'", "\""))
+        for block in json_blockchain['blocks']:
+            body = Body()
+            for node in block['body']['nodes']:
+                body.add_node(Node(node['device_id'], node['connection_status']))
+            self.blocks.append(Block(str(block['prev_hash']), block['special_number'], block['timestamp']))
+            self.blocks[-1].body = body
+        return True
 
     def add_block(self):
         if len(self.blocks) == 0:
@@ -35,12 +66,9 @@ class Blockchain:
             self.add_node(node)
         return True
 
-    def check_blocks(self):
+    def check_integrity(self):
         # loop over all blocks except the last one (dont know if its mined yet)
         for i in range(len(self.blocks) - 1):
-            print('actual hash:' + self.blocks[i].get_hash().hexdigest())
-            print('prev hash:' + self.blocks[i + 1].prev_hash)
-            print('check_zeros:' + str(self.blocks[i].check_zeros(LEADING_ZEROS)))
             if self.blocks[i].get_hash().hexdigest() != self.blocks[i + 1].prev_hash or self.blocks[i].check_zeros(LEADING_ZEROS) == False:
                 return False
         return True
@@ -68,7 +96,6 @@ class Blockchain:
             return True
         return False
 
-
     def get_height(self):
         return len(self.blocks) - 1
 
@@ -82,18 +109,10 @@ def to_json(l):
 """
 
 """
-def main():
-    blockchain = Blockchain()
-    for i in range(0,25):
-        t = Node(randint(0,100), randint(0,1))
-        blockchain.add_node(t)
-        print(blockchain)
-"""
-
 if __name__ == '__main__':
     blockchain = Blockchain()
     for i in range(0,25):
         t = Node(randint(0,100), randint(0,1))
         if blockchain.add_node(t) == False:
             print('nie udalo sie dodac node')
-        print(blockchain)
+"""

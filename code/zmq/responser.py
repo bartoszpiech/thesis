@@ -22,7 +22,7 @@ while True:
         temperature = randrange(-20, 40)
         brightness = randrange(0, 100)
         socket.send_string(f"Device {incoming_id} authorized: {temperature} {brightness}")
-        print(f"Received request from : {incoming_id} -- authorized")
+        print(f"Received request from : {incoming_id} -- authorized, Response: {temperature} {brightness}")
     else:
         socket.send_string(f"Device {incoming_id} unauthorized")
         print(f"Received request from : {incoming_id} -- unauthorized")
