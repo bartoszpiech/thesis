@@ -3,7 +3,7 @@ import zmq
 import requests
 from random import randrange
 
-IP = 'http://192.168.0.143:5000'
+IP = 'http://192.168.0.164:5000'
 
 def check_device(dev_id):
     r = requests.get(IP + '/api/check/' + str(dev_id))
@@ -24,6 +24,6 @@ while True:
         socket.send_string(f"Device {incoming_id} authorized: {temperature} {brightness}")
         print(f"Received request from : {incoming_id} -- authorized, Response: {temperature} {brightness}")
     else:
-        socket.send_string(f"Device {incoming_id} unauthorized")
+        #socket.send_string(f"Device {incoming_id} unauthorized")
         print(f"Received request from : {incoming_id} -- unauthorized")
     #time.sleep(1)

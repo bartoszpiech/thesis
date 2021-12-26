@@ -11,12 +11,16 @@ socket.connect("tcp://localhost:5555")
 device_id = sys.argv[1] if len(sys.argv) > 1 else "1"
 
 
-for request in range(100):
+bytes_read = 0
+for request in range(1000):
     print(f"Sending request {request}")
     socket.send_string(f"{device_id}")
     message = socket.recv()
+    bytes_read += len(message)
     print(f"Received reply {request} [ {message} ]")
     #time.sleep(1)
+
+print(f'Total bytes read: {bytes_read}')
 
 
 
