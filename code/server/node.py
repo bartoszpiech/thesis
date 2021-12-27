@@ -1,5 +1,3 @@
-# Tutaj mialem problemy przy tworzeniu connection status jako enuma, zamiast
-# tego dalem int, 0 -> otwarte polaczenia, 1 -> zamkniete polaczenia.
 class Node:
     def __init__(self, device_id, connection_status):
         self.device_id = device_id

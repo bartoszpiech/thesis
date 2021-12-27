@@ -11,7 +11,6 @@ def check_device(dev_id):
         return True
     return False
 
-
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
@@ -24,6 +23,14 @@ while True:
         socket.send_string(f"Device {incoming_id} authorized: {temperature} {brightness}")
         print(f"Received request from : {incoming_id} -- authorized, Response: {temperature} {brightness}")
     else:
-        #socket.send_string(f"Device {incoming_id} unauthorized")
         print(f"Received request from : {incoming_id} -- unauthorized")
-    #time.sleep(1)
+
+""" for benchmark purpose
+# Code without server check
+while True:
+    incoming_id = int(socket.recv())
+    temperature = randrange(-20, 40)
+    brightness = randrange(0, 100)
+    socket.send_string(f"Device {incoming_id} authorized: {temperature} {brightness}")
+    print(f"Received request from : {incoming_id} -- authorized, Response: {temperature} {brightness}")
+"""

@@ -10,12 +10,12 @@ class Blockchain:
         self.blocks = []
         self.file_name = file_name
         if isinstance(self.file_name, str):
-            if not self.from_file(self.file_name):
+            if not self.read_from_file(self.file_name):
                 print(f'File {self.file_name} not found, creating one.')
                 self.add_block()
-                self.to_file()
+                self.write_to_file()
             elif self.check_integrity():
-                print(f'Read blockchain from file {self.file_name} was successful, blockchain integrity not violated.')
+                print(f'Read blockchain from file {self.file_name} successful, blockchain integrity not violated.')
             else:
                 print('Error: Blockchain integrity violated!')
                 exit(1)
@@ -28,11 +28,11 @@ class Blockchain:
             tmp.append(block.to_json())
         return {'blocks': tmp}
 
-    def to_file(self):
+    def write_to_file(self):
         with open(self.file_name, 'w') as fp:
             fp.write(str(self.to_json()))
 
-    def from_file(self, file_name):
+    def read_from_file(self, file_name):
         try:
             with open(file_name, 'r') as fp:
                 blockchain_str = fp.read()

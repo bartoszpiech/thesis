@@ -7,9 +7,6 @@ from body import *
 MAX_UINT = 4294967295   # maximum value of random special number <0, MAX_UINT>
 LEADING_ZEROS = 4       # leading number of zeros in the block hash
 
-# TODO dodanie pola is_mined do klasy block zeby wiedziec czy i kiedy zostal
-# wykopany, dodanie timestampa z wykopania
-
 class Block:
     def __init__(self, prev_hash = '0', special_number = 'None', timestamp = 'None'):
         self.prev_hash = prev_hash
