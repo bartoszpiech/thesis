@@ -10,7 +10,7 @@ class Blockchain:
         self.blocks = []
         self.file_name = file_name
         if isinstance(self.file_name, str):
-            if not self.read_from_file(self.file_name):
+            if not self.read_from_file():
                 print(f'File {self.file_name} not found, creating one.')
                 self.add_block()
                 self.write_to_file()
@@ -32,9 +32,9 @@ class Blockchain:
         with open(self.file_name, 'w') as fp:
             fp.write(str(self.to_json()))
 
-    def read_from_file(self, file_name):
+    def read_from_file(self):
         try:
-            with open(file_name, 'r') as fp:
+            with open(self.file_name, 'r') as fp:
                 blockchain_str = fp.read()
         except FileNotFoundError:
             return False
